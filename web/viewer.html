@@ -1133,7 +1133,7 @@ See https://github.com/adobe-type-tools/cmap-resources
     </div>
     <!-- outerContainer -->
     
-        <div id="printContainer"></div>
+    <div id="printContainer"></div>
 
     <!-- DTL Restrictions -->
     <script>
@@ -1202,6 +1202,31 @@ See https://github.com/adobe-type-tools/cmap-resources
         };
         
         console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
+        
+        // ---------------------------------------------------------
+        // ALWAYS HIDE EDITOR/ANNOTATION TOOLS
+        // ---------------------------------------------------------
+        const hideEditorTools = () => {
+            const editorSelectors = [
+                '#editorModeButtons',
+                '#editorModeSeparator',
+                '#editorHighlight',
+                '#editorFreeText', 
+                '#editorInk',
+                '#editorStamp',
+                '#editorComment',
+                '#editorSignature'
+            ];
+            editorSelectors.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.style.display = 'none';
+            });
+            console.log('[DTL] Editor tools hidden');
+        };
+        
+        hideEditorTools();
+        setTimeout(hideEditorTools, 500);
+        setTimeout(hideEditorTools, 1500);
         
         // ---------------------------------------------------------
         // DOWNLOAD/PRINT RESTRICTIONS
