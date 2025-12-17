@@ -1133,5 +1133,222 @@ See https://github.com/adobe-type-tools/cmap-resources
     </div>
     <!-- outerContainer -->
     <div id="printContainer"></div>
+
+    <!-- DTL Restrictions -->
+    <script>
+    // ---------------------------------------------------------
+    // SECURITY LOCK: STRICT REFERRER CHECK (DOM REPLACEMENT)
+    // ---------------------------------------------------------
+    (function() {
+        try {
+            const ALLOWED_HOSTS = [
+                "thedtl.org",
+                "thedtl.github.io",
+                "oclc.org", 
+                "libapps.com", 
+                "libguides.com", 
+                "springshare.com", 
+                "localhost"
+            ];
+            
+            let referrer = document.referrer || "";
+            if (!referrer && window.location.ancestorOrigins && window.location.ancestorOrigins.length > 0) {
+                referrer = window.location.ancestorOrigins[window.location.ancestorOrigins.length - 1];
+            }
+            
+            const isAllowed = ALLOWED_HOSTS.some(host => referrer.includes(host));
+            
+            if (!isAllowed) {
+                const refDisplay = referrer || 'Hidden / Direct Link';
+                
+                document.documentElement.innerHTML = `
+                    <head>
+                        <title>Access Denied</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1">
+                    </head>
+                    <body style="background-color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; margin: 0;">
+                        <div style="color: #d9534f;">
+                            <h1>Access Denied</h1>
+                            <p>This document must be accessed via the Library website.</p>
+                            <p style="color: #666; font-size: 12px;">(Referrer: ${refDisplay})</p>
+                        </div>
+                    </body>
+                `;
+                window.stop();
+                throw new Error("Access Denied: Invalid Referrer"); 
+            }
+        } catch (e) {
+            if (e.message.includes("Access Denied")) {
+                throw e;
+            }
+        }
+    })();
+
+    // ---------------------------------------------------------
+    // CONFIGURABLE RESTRICTIONS (READ FROM URL PARAMS)
+    // ---------------------------------------------------------
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const pageLimit = parseInt(urlParams.get('limit')) || 20;
+        const allowDownload = urlParams.get('download') === 'true';
+        
+        window.DTL_RESTRICTIONS = {
+            pageLimit: pageLimit,
+            allowDownload: allowDownload,
+            maxPage: null,
+            totalPages: null
+        };
+        
+        console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
+        
+        // ---------------------------------------------------------
+        // DOWNLOAD/PRINT RESTRICTIONS
+        // ---------------------------------------------------------
+        const downloadPrintSelectors = [
+            '#downloadButton',
+            '#printButton',
+            '#secondaryDownload', 
+            '#secondaryPrint', 
+            '#secondaryOpenFile'
+        ];
+        
+        const setButtonVisibility = (show) => {
+            downloadPrintSelectors.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) {
+                    el.style.display = show ? '' : 'none';
+                }
+            });
+            console.log(`[DTL] Download/print buttons ${show ? 'shown' : 'hidden'}`);
+        };
+        
+        const applyDownloadRestrictions = () => {
+            setButtonVisibility(allowDownload);
+        };
+        
+        applyDownloadRestrictions();
+        setTimeout(applyDownloadRestrictions, 500);
+        setTimeout(applyDownloadRestrictions, 1500);
+        
+        if (!allowDownload) {
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+            
+            document.addEventListener('contextmenu', e => e.preventDefault());
+        }
+        
+        // ---------------------------------------------------------
+        // PAGE LIMIT RESTRICTION
+        // ---------------------------------------------------------
+        if (pageLimit < 100) {
+            const showEndCard = () => {
+                if (document.getElementById('dtl-preview-end-card')) return;
+                
+                const endCard = document.createElement('div');
+                endCard.id = 'dtl-preview-end-card';
+                endCard.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0,0,0,0.85);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 99999;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    ">
+                        <div style="
+                            background: white;
+                            padding: 40px 50px;
+                            border-radius: 12px;
+                            text-align: center;
+                            max-width: 500px;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        ">
+                            <div style="font-size: 48px; margin-bottom: 20px;">📖</div>
+                            <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Preview Complete</h2>
+                            <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6;">
+                                You've reached the end of this ${pageLimit}% preview.<br>
+                                Contact your library for full access to this resource.
+                            </p>
+                            <div style="
+                                background: #f5f5f5;
+                                padding: 12px 20px;
+                                border-radius: 6px;
+                                color: #888;
+                                font-size: 14px;
+                            ">
+                                Page ${window.DTL_RESTRICTIONS.maxPage} of ${window.DTL_RESTRICTIONS.totalPages}
+                            </div>
+                            <button onclick="document.getElementById('dtl-preview-end-card').remove()" style="
+                                margin-top: 20px;
+                                padding: 10px 24px;
+                                background: #0061fe;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                            ">Continue Browsing</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(endCard);
+            };
+            
+            const enforcePageLimit = () => {
+                const checkReady = setInterval(() => {
+                    if (window.PDFViewerApplication && window.PDFViewerApplication.pdfDocument) {
+                        clearInterval(checkReady);
+                        
+                        const totalPages = window.PDFViewerApplication.pdfDocument.numPages;
+                        const maxPage = Math.max(1, Math.floor(totalPages * (pageLimit / 100)));
+                        
+                        window.DTL_RESTRICTIONS.totalPages = totalPages;
+                        window.DTL_RESTRICTIONS.maxPage = maxPage;
+                        
+                        window.PDFViewerApplication.eventBus.on('pagechanging', function(evt) {
+                            if (evt.pageNumber > maxPage) {
+                                setTimeout(() => { window.PDFViewerApplication.page = maxPage; }, 50);
+                                showEndCard();
+                            }
+                        });
+                        
+                        const pageInput = document.getElementById('pageNumber');
+                        if (pageInput) {
+                            pageInput.max = maxPage;
+                            pageInput.addEventListener('change', function() {
+                                if (parseInt(this.value) > maxPage) {
+                                    this.value = maxPage;
+                                    window.PDFViewerApplication.page = maxPage;
+                                    showEndCard();
+                                }
+                            });
+                        }
+                        
+                        const numPagesEl = document.getElementById('numPages');
+                        if (numPagesEl) {
+                            numPagesEl.textContent = `of ${maxPage}`;
+                        }
+                        
+                        console.log(`[DTL] Preview limit: ${maxPage}/${totalPages} pages (${pageLimit}%)`);
+                    }
+                }, 100);
+                
+                setTimeout(() => clearInterval(checkReady), 30000);
+            };
+            
+            enforcePageLimit();
+        }
+    })();
+    </script>
   </body>
 </html>
+
