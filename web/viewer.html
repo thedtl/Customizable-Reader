@@ -35,6 +35,12 @@ See https://github.com/adobe-type-tools/cmap-resources
 
   <script src="viewer.mjs" type="module"></script>
 
+  <!-- DTL: Hide thumbnail button but keep in DOM for pdf.js compatibility -->
+  <style>
+    #viewThumbnail {
+      display: none !important;
+    }
+  </style>
   </head>
 
   <body tabindex="0">
@@ -46,13 +52,25 @@ See https://github.com/adobe-type-tools/cmap-resources
           <div id="toolbarSidebarLeft">
             <div id="sidebarViewButtons" class="toolbarHorizontalGroup toggled" role="radiogroup">
               <button
-                id="viewOutline"
+                id="viewThumbnail"
                 class="toolbarButton toggled"
+                type="button"
+                tabindex="0"
+                data-l10n-id="pdfjs-thumbs-button"
+                role="radio"
+                aria-checked="true"
+                aria-controls="thumbnailView"
+              >
+                <span data-l10n-id="pdfjs-thumbs-button-label"></span>
+              </button>
+              <button
+                id="viewOutline"
+                class="toolbarButton"
                 type="button"
                 tabindex="0"
                 data-l10n-id="pdfjs-document-outline-button"
                 role="radio"
-                aria-checked="true"
+                aria-checked="false"
                 aria-controls="outlineView"
               >
                 <span data-l10n-id="pdfjs-document-outline-button-label"></span>
@@ -1191,6 +1209,26 @@ See https://github.com/adobe-type-tools/cmap-resources
         };
         
         console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
+        
+        // ---------------------------------------------------------
+        // SWITCH DEFAULT SIDEBAR VIEW TO OUTLINE (instead of thumbnails)
+        // ---------------------------------------------------------
+        const switchToOutlineView = () => {
+            const checkReady = setInterval(() => {
+                if (window.PDFViewerApplication && window.PDFViewerApplication.pdfSidebar) {
+                    clearInterval(checkReady);
+                    try {
+                        // SidebarView.OUTLINE = 2 in pdf.js
+                        window.PDFViewerApplication.pdfSidebar.switchView(2);
+                        console.log('[DTL] Sidebar switched to outline view');
+                    } catch (e) {
+                        console.log('[DTL] Could not switch sidebar view:', e);
+                    }
+                }
+            }, 100);
+            setTimeout(() => clearInterval(checkReady), 30000);
+        };
+        switchToOutlineView();
         
         // ---------------------------------------------------------
         // ALWAYS HIDE EDITOR/ANNOTATION TOOLS
