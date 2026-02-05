@@ -35,9 +35,12 @@ See https://github.com/adobe-type-tools/cmap-resources
 
   <script src="viewer.mjs" type="module"></script>
 
-  <!-- DTL: Hide thumbnail button but keep in DOM for pdf.js compatibility -->
+  <!-- DTL: Hide sidebar toggle button and sidebar -->
   <style>
-    #viewThumbnail {
+    #sidebarToggleButton,
+    #sidebarContainer,
+    #viewBookmark,
+    #viewBookmarkSeparator {
       display: none !important;
     }
   </style>
@@ -1211,26 +1214,6 @@ See https://github.com/adobe-type-tools/cmap-resources
         console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
         
         // ---------------------------------------------------------
-        // SWITCH DEFAULT SIDEBAR VIEW TO OUTLINE (instead of thumbnails)
-        // ---------------------------------------------------------
-        const switchToOutlineView = () => {
-            const checkReady = setInterval(() => {
-                if (window.PDFViewerApplication && window.PDFViewerApplication.pdfSidebar) {
-                    clearInterval(checkReady);
-                    try {
-                        // SidebarView.OUTLINE = 2 in pdf.js
-                        window.PDFViewerApplication.pdfSidebar.switchView(2);
-                        console.log('[DTL] Sidebar switched to outline view');
-                    } catch (e) {
-                        console.log('[DTL] Could not switch sidebar view:', e);
-                    }
-                }
-            }, 100);
-            setTimeout(() => clearInterval(checkReady), 30000);
-        };
-        switchToOutlineView();
-        
-        // ---------------------------------------------------------
         // ALWAYS HIDE EDITOR/ANNOTATION TOOLS
         // ---------------------------------------------------------
         const hideEditorTools = () => {
@@ -1432,3 +1415,4 @@ See https://github.com/adobe-type-tools/cmap-resources
     </script>
   </body>
 </html>
+
