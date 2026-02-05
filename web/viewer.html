@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <!--
 Copyright 2012 Mozilla Foundation
 
@@ -1204,7 +1204,7 @@ See https://github.com/adobe-type-tools/cmap-resources
         console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
         
         // ---------------------------------------------------------
-        // ALWAYS HIDE EDITOR/ANNOTATION TOOLS
+        // ALWAYS HIDE EDITOR/ANNOTATION TOOLS AND THUMBNAIL BUTTON
         // ---------------------------------------------------------
         const hideEditorTools = () => {
             const editorSelectors = [
@@ -1215,13 +1215,14 @@ See https://github.com/adobe-type-tools/cmap-resources
                 '#editorInk',
                 '#editorStamp',
                 '#editorComment',
-                '#editorSignature'
+                '#editorSignature',
+                '#viewThumbnail'
             ];
             editorSelectors.forEach(sel => {
                 const el = document.querySelector(sel);
                 if (el) el.style.display = 'none';
             });
-            console.log('[DTL] Editor tools hidden');
+            console.log('[DTL] Editor tools and thumbnail button hidden');
         };
         
         hideEditorTools();
@@ -1405,4 +1406,3 @@ See https://github.com/adobe-type-tools/cmap-resources
     </script>
   </body>
 </html>
-
