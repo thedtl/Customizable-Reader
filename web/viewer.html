@@ -1211,7 +1211,7 @@ See https://github.com/adobe-type-tools/cmap-resources
         console.log(`[DTL] Restrictions: ${pageLimit}% limit, download=${allowDownload}`);
         
         // ---------------------------------------------------------
-        // ALWAYS HIDE EDITOR/ANNOTATION TOOLS AND THUMBNAIL BUTTON
+        // ALWAYS HIDE EDITOR/ANNOTATION TOOLS
         // ---------------------------------------------------------
         const hideEditorTools = () => {
             const editorSelectors = [
@@ -1222,14 +1222,13 @@ See https://github.com/adobe-type-tools/cmap-resources
                 '#editorInk',
                 '#editorStamp',
                 '#editorComment',
-                '#editorSignature',
-                '#viewThumbnail'
+                '#editorSignature'
             ];
             editorSelectors.forEach(sel => {
                 const el = document.querySelector(sel);
                 if (el) el.style.display = 'none';
             });
-            console.log('[DTL] Editor tools and thumbnail button hidden');
+            console.log('[DTL] Editor tools hidden');
         };
         
         hideEditorTools();
