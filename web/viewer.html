@@ -1152,53 +1152,55 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     <!-- DTL Restrictions -->
     <script>
-    // ---------------------------------------------------------
-    // SECURITY LOCK: STRICT REFERRER CHECK (DOM REPLACEMENT)
-    // ---------------------------------------------------------
-    (function() {
-        try {
-            const ALLOWED_HOSTS = [
-                "thedtl.org",
-                "thedtl.github.io",
-                "oclc.org", 
-                "libapps.com", 
-                "libguides.com", 
-                "springshare.com", 
-                "localhost"
-            ];
-            
-            let referrer = document.referrer || "";
-            if (!referrer && window.location.ancestorOrigins && window.location.ancestorOrigins.length > 0) {
-                referrer = window.location.ancestorOrigins[window.location.ancestorOrigins.length - 1];
-            }
-            
-            const isAllowed = ALLOWED_HOSTS.some(host => referrer.includes(host));
-            
-            if (!isAllowed) {
-                const refDisplay = referrer || 'Hidden / Direct Link';
-                
-                document.documentElement.innerHTML = `
-                    <head>
-                        <title>Access Denied</title>
-                        <meta name="viewport" content="width=device-width, initial-scale=1">
-                    </head>
-                    <body style="background-color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; margin: 0;">
-                        <div style="color: #d9534f;">
-                            <h1>Access Denied</h1>
-                            <p>This document must be accessed via the Library website.</p>
-                            <p style="color: #666; font-size: 12px;">(Referrer: ${refDisplay})</p>
-                        </div>
-                    </body>
-                `;
-                window.stop();
-                throw new Error("Access Denied: Invalid Referrer"); 
-            }
-        } catch (e) {
-            if (e.message.includes("Access Denied")) {
-                throw e;
-            }
+// ---------------------------------------------------------
+// SECURITY LOCK: STRICT REFERRER CHECK (DOM REPLACEMENT)
+// ---------------------------------------------------------
+(function() {
+    try {
+        const ALLOWED_HOSTS = [
+            "thedtl.org",
+            "thedtl.github.io",
+            "oclc.org", 
+            "libapps.com", 
+            "libguides.com", 
+            "springshare.com", 
+            "localhost"
+        ];
+        
+        const isInIframe = window.self !== window.top;
+        
+        let referrer = document.referrer || "";
+        if (!referrer && window.location.ancestorOrigins && window.location.ancestorOrigins.length > 0) {
+            referrer = window.location.ancestorOrigins[window.location.ancestorOrigins.length - 1];
         }
-    })();
+        
+        const isAllowed = isInIframe || ALLOWED_HOSTS.some(host => referrer.includes(host));
+        
+        if (!isAllowed) {
+            const refDisplay = referrer || 'Hidden / Direct Link';
+            
+            document.documentElement.innerHTML = `
+                <head>
+                    <title>Access Denied</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                </head>
+                <body style="background-color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; margin: 0;">
+                    <div style="color: #d9534f;">
+                        <h1>Access Denied</h1>
+                        <p>This document must be accessed via the Library website.</p>
+                        <p style="color: #666; font-size: 12px;">(Referrer: ${refDisplay})</p>
+                    </div>
+                </body>
+            `;
+            window.stop();
+            throw new Error("Access Denied: Invalid Referrer"); 
+        }
+    } catch (e) {
+        if (e.message.includes("Access Denied")) {
+            throw e;
+        }
+    }
+})();
 
     // ---------------------------------------------------------
     // CONFIGURABLE RESTRICTIONS (READ FROM URL PARAMS)
