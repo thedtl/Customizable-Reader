@@ -1153,6 +1153,27 @@ See https://github.com/adobe-type-tools/cmap-resources
     <!-- DTL Restrictions -->
     <script>
 // ---------------------------------------------------------
+// FRAME-BUSTING: Only allow approved sites to iframe this
+// ---------------------------------------------------------
+if (window.self !== window.top) {
+    try {
+        const parentHost = document.referrer ? new URL(document.referrer).hostname : '';
+        const FRAME_ALLOWED = [
+            'thedtl.org',
+            'libguides.com',
+            'libapps.com',
+            'springshare.com'
+        ];
+        const frameOk = FRAME_ALLOWED.some(h => parentHost.endsWith(h));
+        if (!frameOk) {
+            window.top.location = window.self.location;
+        }
+    } catch (e) {
+        window.top.location = window.self.location;
+    }
+}
+
+// ---------------------------------------------------------
 // SECURITY LOCK: STRICT REFERRER CHECK (DOM REPLACEMENT)
 // ---------------------------------------------------------
 (function() {
